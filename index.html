@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+     <link rel="icon" href="logo.png" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APavan_CONTROLE FINANCEIRO PESSOAL</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 overflow-x-hidden">
+
+    <!-- Container Principal -->
+    <div class="flex min-h-screen">
+
+        <!-- Sidebar (Desktop) -->
+        <aside class="hidden md:flex flex-col fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200 p-6 z-10">
+            <!-- ACRESCIMO DA LOGO NO TOPO ESQUERDO -->
+            <div class="flex flex-col items-center mb-8 border-b border-slate-100 pb-6">
+                <img src="https://files.oaiusercontent.com/file-K1XNEx087x4zR094i0C5nS8L?se=2025-02-26T14%3A28%3A18Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D604800%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D01.jpeg&sig=S84v9W8A9/Gq9O9Xv7YV48W7Dk8M8R8R8R8R8R8R8R8%3D" 
+                     alt="Logo AP Engenharia" 
+                     class="w-32 h-auto object-contain mb-4">
+                <div class="flex items-center gap-3 text-blue-600">
+                    <i class="fas fa-wallet text-xl"></i>
+                    <h1 class="font-bold text-lg tracking-tight text-slate-900">APavan_Finanças</h1>
+                </div>
+            </div>
+            
+            <nav class="space-y-2">
+                <button onclick="changeView('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-50 text-slate-600" data-view="dashboard">
+                    <i class="fas fa-chart-pie w-5"></i> Dashboard
+                </button>
+                <button onclick="changeView('list')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-50 text-slate-600" data-view="list">
+                    <i class="fas fa-calendar-alt w-5"></i> Extrato Mensal
+                </button>
+                <button onclick="changeView('calculator')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-50 text-slate-600" data-view="calculator">
+                    <i class="fas fa-calculator w-5"></i> Calculadora
+                </button>
+                <button onclick="openForm()" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-50 text-slate-600" data-view="form">
+                    <i class="fas fa-plus-circle w-5"></i> Novo Lançamento
+                </button>
+            </nav>
+
+            <div class="mt-auto">
+                <div class="p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                    <p class="text-[10px] text-blue-600 mb-1 uppercase font-bold">Modo Offline</p>
+                    <p class="text-[10px] text-blue-500 leading-tight">Dados guardados apenas neste navegador.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="flex-1 md:ml-64 p-4 md:p-8 max-w-5xl mx-auto w-full pb-24 md:pb-8">
+            
+            <!-- ACRESCIMO DO AVISO DE ALERTA PARA VENCIMENTOS DO DIA -->
+            <div id="alert-container" class="mb-6 hidden">
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-xl shadow-sm flex items-start gap-4 fade-in">
+                    <div class="text-amber-500 mt-1">
+                        <i class="fas fa-exclamation-triangle text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-amber-800 text-sm">Atenção: Vencimentos para hoje!</h4>
+                        <ul id="alert-list" class="text-xs text-amber-700 mt-1 list-disc list-inside"></ul>
+                    </div>
+                    <button onclick="document.getElementById('alert-container').classList.add('hidden')" class="text-amber-400 hover:text-amber-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ACRÉSCIMO DO NOME DO APLICATIVO -->
+            <div class="text-center mb-10">
+                <h1 class="text-3xl font-black text-slate-800 tracking-tighter uppercase">
+                   <img src="logo.jpeg" alt="Logo APavan Engenharia" width="75"> APavan_CONTROLE FINANCEIRO
+                </h1>
+            </div>
+
+            <!-- Cabeçalho Dinâmico -->
+            <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <div>
+                    <h2 id="view-title" class="text-2xl font-bold text-slate-800">Dashboard</h2>
+                    <p id="view-subtitle" class="text-slate-500 text-sm">Controle de entradas e saídas</p>
+                </div>
+                
+                <div id="period-selector" class="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+                    <button onclick="changeMonth(-1)" class="p-2 hover:bg-slate-50 rounded-lg text-slate-400">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span id="current-period" class="px-4 font-semibold min-w-[140px] text-center text-sm">
+                        ...
+                    </span>
+                    <button onclick="changeMonth(1)" class="p-2 hover:bg-slate-50 rounded-lg text-slate-400">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="view-dashboard" class="view-content space-y-6 fade-in">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-emerald-600">
+                        <div class="flex items-center justify-between mb-4 text-slate-400">
+                            <div class="bg-emerald-100 p-2 rounded-lg text-emerald-600 text-sm"><i class="fas fa-arrow-up"></i></div>
+                            <span class="text-[10px] font-bold uppercase">Receitas</span>
+                        </div>
+                        <h3 id="stat-receitas" class="text-2xl font-bold">R$ 0,00</h3>
+                        <p class="text-xs text-slate-500 mt-1">Total recebido</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-rose-600">
+                        <div class="flex items-center justify-between mb-4 text-slate-400">
+                            <div class="bg-rose-100 p-2 rounded-lg text-rose-600 text-sm"><i class="fas fa-arrow-down"></i></div>
+                            <span class="text-[10px] font-bold uppercase">Despesas</span>
+                        </div>
+                        <h3 id="stat-despesas" class="text-2xl font-bold">R$ 0,00</h3>
+                        <p class="text-xs text-slate-500 mt-1">Total de saídas</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-amber-600">
+                        <div class="flex items-center justify-between mb-4 text-slate-400">
+                            <div class="bg-amber-100 p-2 rounded-lg text-amber-600 text-sm"><i class="fas fa-clock"></i></div>
+                            <span class="text-[10px] font-bold uppercase">A Pagar</span>
+                        </div>
+                        <h3 id="stat-pendente" class="text-2xl font-bold">R$ 0,00</h3>
+                        <p class="text-xs text-slate-500 mt-1">Despesas em aberto</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-4 text-slate-400">
+                            <div class="bg-blue-100 p-2 rounded-lg text-blue-600 text-sm"><i class="fas fa-equals"></i></div>
+                            <span class="text-[10px] font-bold uppercase">Saldo Líquido</span>
+                        </div>
+                        <h3 id="stat-saldo" class="text-2xl font-bold text-slate-900">R$ 0,00</h3>
+                        <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
+                            <div id="stat-progress-bar" class="bg-blue-500 h-2 transition-all duration-700" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Histórico de 12 Meses -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold flex items-center gap-2 mb-6 text-sm text-slate-700">
+                        <i class="fas fa-history text-blue-500"></i> Histórico dos Últimos 12 Meses
+                    </h4>
+                    <div class="relative h-64 w-full">
+                        <canvas id="chart-history-12-months"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold flex items-center gap-2 mb-6 text-sm text-slate-700">
+                            <i class="fas fa-chart-bar text-blue-500"></i> Resumo de Gastos por Categoria
+                        </h4>
+                        <div class="relative h-48 w-full mb-6">
+                            <canvas id="chart-monthly-categories"></canvas>
+                        </div>
+                        <div id="category-stats" class="space-y-4"></div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold flex items-center gap-2 mb-4 text-sm text-slate-700"><i class="fas fa-exclamation-circle text-amber-500"></i> Próximos Vencimentos</h4>
+                        <div id="upcoming-list" class="space-y-3 text-sm"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- List View (Extrato) -->
+            <section id="view-list" class="view-content hidden fade-in">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <h4 class="font-bold text-slate-700">Extrato Detalhado</h4>
+                        <div class="flex gap-2">
+                            <button onclick="exportCSV()" class="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs transition-colors font-semibold">
+                                <i class="fas fa-file-csv"></i> Exportar
+                            </button>
+                            <button onclick="clearAllData()" class="flex items-center gap-2 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs transition-colors font-semibold">
+                                <i class="fas fa-trash"></i> Limpar Tudo
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-4 font-semibold text-center w-16">Pago</th>
+                                    <th class="px-6 py-4 font-semibold">Descrição</th>
+                                    <th class="px-6 py-4 font-semibold">Vencimento</th>
+                                    <th class="px-6 py-4 font-semibold text-right">Valor</th>
+                                    <th class="px-6 py-4 font-semibold">Meio</th>
+                                    <th class="px-6 py-4 font-semibold text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contas-table-body" class="divide-y divide-slate-100 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calculator View -->
+            <section id="view-calculator" class="view-content hidden fade-in">
+                <div class="max-w-3xl mx-auto space-y-6">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+                        <div class="flex p-1 bg-slate-100 rounded-xl mb-8">
+                            <button type="button" onclick="setCalcRegime('composto')" id="btn-regime-composto" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-white shadow-sm text-blue-600">Juros Compostos</button>
+                            <button type="button" onclick="setCalcRegime('simples')" id="btn-regime-simples" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all text-slate-500">Juros Simples</button>
+                        </div>
+                        
+                        <!-- INFO BOX SOBRE SALDO INTEGRADO -->
+                        <div id="calc-integration-info" class="mb-6 p-3 bg-blue-50 border border-blue-100 rounded-xl text-[11px] text-blue-700 flex items-center gap-3">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Capital inicial ajustado com base no fechamento do mês anterior ao selecionado: <strong><span id="calc-integrated-period">...</span></strong>.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Capital Inicial (R$)</label>
+                                <input type="number" id="calc-capital" oninput="calculateJuros()" step="0.01" value="1000" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                <p id="calc-adjustment-msg" class="text-[9px] mt-1 font-semibold"></p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Taxa (%)</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="calc-taxa" oninput="calculateJuros()" step="0.01" value="1" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                    <select id="calc-taxa-tipo" onchange="calculateJuros()" class="px-2 py-3 border border-slate-200 rounded-xl text-xs bg-white outline-none">
+                                        <option value="mes">a.m.</option>
+                                        <option value="ano">a.a.</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Período</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="calc-tempo" oninput="calculateJuros()" step="1" value="12" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                    <select id="calc-tempo-tipo" onchange="calculateJuros()" class="px-2 py-3 border border-slate-200 rounded-xl text-xs bg-white outline-none">
+                                        <option value="meses">Meses</option>
+                                        <option value="anos">Anos</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-8 pt-8 border-t border-slate-100">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Juros</p>
+                                    <h4 id="calc-res-juros" class="text-xl font-bold text-blue-600">R$ 0,00</h4>
+                                </div>
+                                <div class="p-4 bg-blue-600 rounded-2xl shadow-lg">
+                                    <p class="text-[10px] font-bold text-blue-200 uppercase mb-1">Montante Final</p>
+                                    <h4 id="calc-res-montante" class="text-xl font-bold text-white">R$ 0,00</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ACRÉSCIMO DO GRÁFICO DA TAXA DE JUROS -->
+                        <div class="mt-8 pt-8 border-t border-slate-100">
+                            <h4 class="text-xs font-bold text-slate-500 uppercase mb-4">Evolução do Patrimônio</h4>
+                            <div class="relative h-64 w-full">
+                                <canvas id="juros-evolution-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Form View -->
+            <section id="view-form" class="view-content hidden fade-in">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm max-w-2xl mx-auto p-6 md:p-8">
+                    <h4 id="form-title" class="text-xl font-bold mb-6 text-slate-800">Novo Lançamento</h4>
+                    <div class="flex p-1 bg-slate-100 rounded-xl mb-8">
+                        <button type="button" onclick="setFormType('despesa')" id="btn-type-despesa" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-white shadow-sm text-rose-600">Despesa</button>
+                        <button type="button" onclick="setFormType('receita')" id="btn-type-receita" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all text-slate-500">Receita</button>
+                    </div>
+                    <form id="finance-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <input type="hidden" id="edit-id">
+                        <input type="hidden" id="form-tipo" value="despesa">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Descrição</label>
+                            <input type="text" id="form-nome" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Valor (R$)</label>
+                            <input type="number" id="form-valor" step="0.01" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Data</label>
+                            <input type="date" id="form-vencimento" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div id="wrapper-categoria">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Categoria</label>
+                            <select id="form-categoria" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none bg-white">
+                                <option value="fixa">Fixa</option>
+                                <option value="variável">Variável</option>
+                                <option value="extra">Extra</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Meio</label>
+                            <select id="form-meio" class="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none bg-white">
+                                <option value="PIX">PIX</option>
+                                <option value="Espécie">Dinheiro</option>
+                                <option value="Cartão">Cartão</option>
+                                <option value="Boleto">Boleto</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2 flex gap-4">
+                            <button type="button" onclick="changeView('dashboard')" class="flex-1 px-6 py-3 border border-slate-200 rounded-xl font-bold">Cancelar</button>
+                            <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+
+        <!-- Navegação Mobile -->
+        <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center z-20">
+            <button onclick="changeView('dashboard')" class="flex flex-col items-center gap-1 text-slate-400">
+                <i class="fas fa-chart-pie"></i><span class="text-[10px] font-bold">Início</span>
+            </button>
+            <button onclick="changeView('list')" class="flex flex-col items-center gap-1 text-slate-400">
+                <i class="fas fa-calendar-alt"></i><span class="text-[10px] font-bold">Extrato</span>
+            </button>
+            <button onclick="openForm()" class="bg-blue-600 text-white p-4 rounded-full -mt-10 shadow-xl border-4 border-slate-50">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button onclick="changeView('calculator')" class="flex flex-col items-center gap-1 text-slate-400">
+                <i class="fas fa-calculator"></i><span class="text-[10px] font-bold">Juros</span>
+            </button>
+            <button onclick="exportCSV()" class="flex flex-col items-center gap-1 text-slate-400">
+                <i class="fas fa-file-export"></i><span class="text-[10px] font-bold">CSV</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        const state = {
+            contas: JSON.parse(localStorage.getItem('apavan_financas_contas')) || [],
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear(),
+            calcRegime: 'composto',
+            meses: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
+            evolutionChart: null,
+            monthlyCategoryChart: null,
+            history12MonthsChart: null,
+            jurosChart: null
+        };
+
+        const formatMoney = (val) => Number(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        function saveData() {
+            localStorage.setItem('apavan_financas_contas', JSON.stringify(state.contas));
+            render();
+        }
+
+        function render() {
+            updatePeriodDisplay();
+            const filtered = getFilteredContas();
+            renderDashboard(filtered);
+            renderList(filtered);
+            calculateJuros();
+            checkDailyAlerts(); 
+        }
+
+        function checkDailyAlerts() {
+            const today = new Date().toISOString().split('T')[0];
+            const vencendoHoje = state.contas.filter(c => 
+                c.tipo !== 'receita' && 
+                c.status === 'pendente' && 
+                c.vencimento === today
+            );
+
+            const alertContainer = document.getElementById('alert-container');
+            const alertList = document.getElementById('alert-list');
+
+            if (vencendoHoje.length > 0) {
+                alertContainer.classList.remove('hidden');
+                alertList.innerHTML = '';
+                vencendoHoje.forEach(c => {
+                    alertList.innerHTML += `<li>${c.nome} - ${formatMoney(c.valor)}</li>`;
+                });
+            } else {
+                alertContainer.classList.add('hidden');
+            }
+        }
+
+        function updatePeriodDisplay() {
+            const periodEl = document.getElementById('current-period');
+            if (periodEl) periodEl.innerText = `${state.meses[state.currentMonth]} ${state.currentYear}`;
+            
+            // Período de fechamento para calculadora (Mês Anterior)
+            let prevM = state.currentMonth - 1;
+            let prevY = state.currentYear;
+            if (prevM < 0) { prevM = 11; prevY--; }
+            
+            const calcPeriodEl = document.getElementById('calc-integrated-period');
+            if (calcPeriodEl) calcPeriodEl.innerText = `${state.meses[prevM]} de ${prevY}`;
+        }
+
+        function getFilteredContas(m = state.currentMonth, y = state.currentYear) {
+            return state.contas.filter(c => {
+                const date = new Date(c.vencimento);
+                const mRef = c.mesRef !== undefined ? c.mesRef : date.getUTCMonth();
+                const yRef = c.anoRef !== undefined ? c.anoRef : date.getUTCFullYear();
+                return mRef === m && yRef === y;
+            }).sort((a, b) => new Date(a.vencimento) - new Date(b.vencimento));
+        }
+
+        function renderDashboard(data) {
+            const receitas = data.filter(c => c.tipo === 'receita').reduce((a, b) => a + b.valor, 0);
+            const despesas = data.filter(c => c.tipo !== 'receita').reduce((a, b) => a + b.valor, 0);
+            const pago = data.filter(c => c.tipo !== 'receita' && c.status === 'paga').reduce((a, b) => a + b.valor, 0);
+            const pendente = despesas - pago;
+            const saldo = receitas - despesas;
+            
+            document.getElementById('stat-receitas').innerText = formatMoney(receitas);
+            document.getElementById('stat-despesas').innerText = formatMoney(despesas);
+            document.getElementById('stat-pendente').innerText = formatMoney(pendente);
+            document.getElementById('stat-saldo').innerText = formatMoney(saldo);
+
+            renderHistoryChart();
+            renderCategoryCharts(data, despesas);
+            renderUpcoming(data);
+        }
+
+        function renderHistoryChart() {
+            const ctx = document.getElementById('chart-history-12-months');
+            if (!ctx) return;
+            const labels = []; const recData = []; const desData = [];
+            for (let i = 11; i >= 0; i--) {
+                let d = new Date(state.currentYear, state.currentMonth - i, 1);
+                let m = d.getMonth(); let y = d.getFullYear();
+                labels.push(`${state.meses[m].substring(0, 3)}/${y.toString().slice(-2)}`);
+                const monthC = state.contas.filter(c => {
+                    const date = new Date(c.vencimento);
+                    const mRef = c.mesRef !== undefined ? c.mesRef : date.getUTCMonth();
+                    const yRef = c.anoRef !== undefined ? c.anoRef : date.getUTCFullYear();
+                    return mRef === m && yRef === y;
+                });
+                recData.push(monthC.filter(c => c.tipo === 'receita').reduce((a, b) => a + b.valor, 0));
+                desData.push(monthC.filter(c => c.tipo !== 'receita').reduce((a, b) => a + b.valor, 0));
+            }
+            if (state.history12MonthsChart) state.history12MonthsChart.destroy();
+            state.history12MonthsChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: { labels, datasets: [
+                    { label: 'Receitas', data: recData, borderColor: '#10b981', tension: 0.4, fill: false },
+                    { label: 'Despesas', data: desData, borderColor: '#f43f5e', tension: 0.4, fill: false }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function renderCategoryCharts(data, totalDes) {
+            const values = []; const labels = ['Fixa', 'Variável', 'Extra'];
+            const container = document.getElementById('category-stats');
+            container.innerHTML = '';
+            ['fixa', 'variável', 'extra'].forEach(cat => {
+                const val = data.filter(c => c.tipo !== 'receita' && c.categoria === cat).reduce((a, b) => a + b.valor, 0);
+                values.push(val);
+                if (val > 0) {
+                    const p = totalDes > 0 ? (val / totalDes) * 100 : 0;
+                    container.innerHTML += `<div class="text-xs"><span>${cat.charAt(0).toUpperCase() + cat.slice(1)}: ${formatMoney(val)}</span><div class="w-full bg-slate-100 h-1 mt-1 rounded"><div class="bg-blue-500 h-full" style="width:${p}%"></div></div></div>`;
+                }
+            });
+            const ctx = document.getElementById('chart-monthly-categories');
+            if (state.monthlyCategoryChart) state.monthlyCategoryChart.destroy();
+            state.monthlyCategoryChart = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: { labels, datasets: [{ data: values, backgroundColor: ['#6366f1', '#fb923c', '#94a3b8'] }]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderUpcoming(data) {
+            const list = document.getElementById('upcoming-list');
+            const pending = data.filter(c => c.tipo !== 'receita' && c.status === 'pendente').slice(0, 4);
+            list.innerHTML = pending.length ? '' : '<div class="text-slate-400 text-center py-4">Tudo em dia!</div>';
+            pending.forEach(c => {
+                list.innerHTML += `<div class="flex justify-between p-2 bg-slate-50 rounded"><span>${c.nome}</span><span class="font-bold text-rose-600">${formatMoney(c.valor)}</span></div>`;
+            });
+        }
+
+        function renderList(data) {
+            const body = document.getElementById('contas-table-body');
+            body.innerHTML = data.length ? '' : '<tr><td colspan="6" class="text-center py-10">Vazio</td></tr>';
+            data.forEach(c => {
+                body.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-4 text-center"><button onclick="handleToggleStatus('${c.id}')">${c.status === 'paga' ? '✅' : '⏳'}</button></td>
+                        <td class="px-6 py-4 font-bold">${c.nome}</td>
+                        <td class="px-6 py-4">${new Date(c.vencimento).toLocaleDateString('pt-BR')}</td>
+                        <td class="px-6 py-4 text-right ${c.tipo==='receita'?'text-emerald-600':'text-rose-600'}">${formatMoney(c.valor)}</td>
+                        <td class="px-6 py-4">${c.formaPagamento}</td>
+                        <td class="px-6 py-4 text-right flex gap-3 justify-end items-center">
+                            <button onclick="handleEdit('${c.id}')" class="text-blue-500 hover:text-blue-700" title="Editar"><i class="fas fa-pen-nib"></i></button>
+                            <button onclick="handleDelete('${c.id}')" class="text-slate-400 hover:text-rose-500" title="Excluir">🗑️</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        window.changeView = (v) => {
+            document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${v}`).classList.remove('hidden');
+            if(v === 'dashboard') render();
+            if(v === 'calculator') calculateJuros();
+        };
+
+        window.changeMonth = (d) => {
+            state.currentMonth += d;
+            if(state.currentMonth > 11) { state.currentMonth = 0; state.currentYear++; }
+            else if(state.currentMonth < 0) { state.currentMonth = 11; state.currentYear--; }
+            render();
+        };
+
+        window.setFormType = (t) => {
+            document.getElementById('form-tipo').value = t;
+            document.getElementById('wrapper-categoria').style.display = t === 'receita' ? 'none' : 'block';
+            
+            const btnDespesa = document.getElementById('btn-type-despesa');
+            const btnReceita = document.getElementById('btn-type-receita');
+            
+            if (t === 'despesa') {
+                btnDespesa.classList.add('bg-white', 'shadow-sm', 'text-rose-600');
+                btnDespesa.classList.remove('text-slate-500');
+                btnReceita.classList.remove('bg-white', 'shadow-sm', 'text-emerald-600');
+                btnReceita.classList.add('text-slate-500');
+            } else {
+                btnReceita.classList.add('bg-white', 'shadow-sm', 'text-emerald-600');
+                btnReceita.classList.remove('text-slate-500');
+                btnDespesa.classList.remove('bg-white', 'shadow-sm', 'text-rose-600');
+                btnDespesa.classList.add('text-slate-500');
+            }
+        };
+
+        window.openForm = () => {
+            document.getElementById('finance-form').reset();
+            document.getElementById('edit-id').value = '';
+            document.getElementById('form-title').innerText = 'Novo Lançamento';
+            setFormType('despesa');
+            changeView('form');
+        };
+
+        document.getElementById('finance-form').onsubmit = (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('edit-id').value;
+            const t = document.getElementById('form-tipo').value;
+            
+            const dados = {
+                tipo: t,
+                nome: document.getElementById('form-nome').value,
+                valor: Number(document.getElementById('form-valor').value),
+                vencimento: document.getElementById('form-vencimento').value,
+                categoria: document.getElementById('form-categoria').value,
+                formaPagamento: document.getElementById('form-meio').value,
+                status: t === 'receita' ? 'paga' : 'pendente',
+                mesRef: state.currentMonth,
+                anoRef: state.currentYear
+            };
+
+            if (editId) {
+                const idx = state.contas.findIndex(x => x.id === editId);
+                if (state.contas[idx].tipo === 'despesa' && dados.tipo === 'despesa') {
+                    dados.status = state.contas[idx].status;
+                }
+                state.contas[idx] = { ...state.contas[idx], ...dados };
+            } else {
+                state.contas.push({
+                    id: crypto.randomUUID(),
+                    ...dados
+                });
+            }
+            
+            saveData();
+            changeView('dashboard');
+            e.target.reset();
+        };
+
+        window.handleToggleStatus = (id) => {
+            const idx = state.contas.findIndex(x => x.id === id);
+            state.contas[idx].status = state.contas[idx].status === 'paga' ? 'pendente' : 'paga';
+            saveData();
+        };
+
+        window.handleDelete = (id) => {
+            if(confirm("Deseja realmente excluir este lançamento?")) {
+                state.contas = state.contas.filter(x => x.id !== id);
+                saveData();
+            }
+        };
+
+        window.handleEdit = (id) => {
+            const conta = state.contas.find(x => x.id === id);
+            if (!conta) return;
+
+            document.getElementById('edit-id').value = conta.id;
+            document.getElementById('form-title').innerText = 'Editar Lançamento';
+            document.getElementById('form-nome').value = conta.nome;
+            document.getElementById('form-valor').value = conta.valor;
+            document.getElementById('form-vencimento').value = conta.vencimento;
+            document.getElementById('form-categoria').value = conta.categoria;
+            document.getElementById('form-meio').value = conta.formaPagamento;
+            
+            setFormType(conta.tipo);
+            changeView('form');
+        };
+
+        window.calculateJuros = () => {
+            // BUSCAR SALDO DO MÊS ANTERIOR (FECHAMENTO)
+            let prevM = state.currentMonth - 1;
+            let prevY = state.currentYear;
+            if (prevM < 0) { prevM = 11; prevY--; }
+
+            const previousMonthData = getFilteredContas(prevM, prevY);
+            const receitasAnterior = previousMonthData.filter(c => c.tipo === 'receita').reduce((a, b) => a + b.valor, 0);
+            const despesasAnterior = previousMonthData.filter(c => c.tipo !== 'receita').reduce((a, b) => a + b.valor, 0);
+            const saldoAnterior = receitasAnterior - despesasAnterior;
+
+            // VARIÁVEIS DA TAXA E TEMPO (Calculamos antes para usar no Montante Anterior)
+            const iInput = parseFloat(document.getElementById('calc-taxa').value) || 0;
+            const tInput = parseFloat(document.getElementById('calc-tempo').value) || 0;
+            const taxaTipo = document.getElementById('calc-taxa-tipo').value;
+            const tempoTipo = document.getElementById('calc-tempo-tipo').value;
+            let i = taxaTipo === 'ano' ? Math.pow(1 + iInput/100, 1/12) - 1 : iInput/100;
+            let n = tempoTipo === 'anos' ? tInput * 12 : tInput;
+
+            // RECUPERAR CAPITAL BASE DIGITADO
+            let P_Base = parseFloat(document.getElementById('calc-capital').value) || 0;
+            
+            // CALCULAR MONTANTE FINAL DO MÊS ANTERIOR (CUMULATIVO)
+            // Para ser verdadeiramente cumulativo, o montante do mês anterior servirá de capital para o próximo
+            let montanteAnterior = P_Base; 
+            if (n > 0) {
+                // Se estivermos em Janeiro, o capital inicial é o montante final de Dezembro do ano anterior
+                // Aqui aplicamos a fórmula para 1 mês sobre o capital base para simular o "fechamento"
+                montanteAnterior = state.calcRegime === 'composto' ? P_Base * Math.pow(1 + i, 1) : P_Base * (1 + i * 1);
+            }
+
+            let P_Ajustado = montanteAnterior;
+            const msgEl = document.getElementById('calc-adjustment-msg');
+
+            // Lógica de capitalização do fechamento (Mês Anterior) sobre o Montante Final do mês anterior
+            if (saldoAnterior < 0) {
+                P_Ajustado = montanteAnterior + saldoAnterior; 
+                if (msgEl) {
+                    msgEl.innerText = `Ajustado: Montante Anterior (${formatMoney(montanteAnterior)}) - Saldo ${state.meses[prevM]} Negativo (${formatMoney(Math.abs(saldoAnterior))}).`;
+                    msgEl.className = "text-[9px] mt-1 font-semibold text-rose-500";
+                }
+            } else if (saldoAnterior > 0) {
+                const aporte = saldoAnterior * 0.3;
+                P_Ajustado = montanteAnterior + aporte;
+                if (msgEl) {
+                    msgEl.innerText = `Ajustado: Montante Anterior (${formatMoney(montanteAnterior)}) + Aporte de 30% do Saldo de ${state.meses[prevM]} (${formatMoney(aporte)}).`;
+                    msgEl.className = "text-[9px] mt-1 font-semibold text-emerald-500";
+                }
+            } else {
+                if (msgEl) {
+                    msgEl.innerText = `Ajustado: Iniciando com Montante Final de ${state.meses[prevM]} (${formatMoney(montanteAnterior)}).`;
+                    msgEl.className = "text-[9px] mt-1 font-semibold text-blue-500";
+                }
+            }
+
+            const labels = [];
+            const values = [];
+
+            // Cálculo dos passos do gráfico e resultado final
+            for (let step = 0; step <= n; step++) {
+                let mStep = state.calcRegime === 'composto' ? P_Ajustado * Math.pow(1 + i, step) : P_Ajustado * (1 + i * step);
+                labels.push(step === 0 ? "Início" : `${step}m`);
+                values.push(mStep);
+            }
+
+            const montanteFinal = values[values.length - 1] || 0;
+            document.getElementById('calc-res-juros').innerText = formatMoney(montanteFinal - P_Ajustado);
+            document.getElementById('calc-res-montante').innerText = formatMoney(montanteFinal);
+
+            const ctx = document.getElementById('juros-evolution-chart');
+            if (state.jurosChart) state.jurosChart.destroy();
+            state.jurosChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Montante',
+                        data: values,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: (val) => 'R$ ' + val.toLocaleString('pt-BR')
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        window.setCalcRegime = (r) => { 
+            state.calcRegime = r; 
+            document.getElementById('btn-regime-composto').classList.toggle('bg-white', r === 'composto');
+            document.getElementById('btn-regime-composto').classList.toggle('shadow-sm', r === 'composto');
+            document.getElementById('btn-regime-composto').classList.toggle('text-blue-600', r === 'composto');
+            document.getElementById('btn-regime-composto').classList.toggle('text-slate-500', r !== 'composto');
+
+            document.getElementById('btn-regime-simples').classList.toggle('bg-white', r === 'simples');
+            document.getElementById('btn-regime-simples').classList.toggle('shadow-sm', r === 'simples');
+            document.getElementById('btn-regime-simples').classList.toggle('text-blue-600', r === 'simples');
+            document.getElementById('btn-regime-simples').classList.toggle('text-slate-500', r !== 'simples');
+            
+            calculateJuros(); 
+        };
+
+        window.exportCSV = () => {
+            if (state.contas.length === 0) return;
+            const headers = "Tipo,Descricao,Valor,Vencimento,Categoria,Meio,Status\n";
+            const rows = state.contas.map(c => 
+                `${c.tipo},${c.nome},${c.valor},${c.vencimento},${c.categoria},${c.formaPagamento},${c.status}`
+            ).join("\n");
+            const blob = new Blob([headers + rows], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'extrato_apavan.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        window.clearAllData = () => {
+            if (confirm("Tem certeza que deseja apagar TODOS os dados permanentemente?")) {
+                state.contas = [];
+                saveData();
+            }
+        };
+
+        render();
+    </script>
+</body>
+</html>
